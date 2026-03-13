@@ -15,12 +15,22 @@ DATA_FILE = "sent_videos.json"
 
 
 # ==========================
-# LOAD SENT VIDEOS
+# LOAD SENT VIDEOS (FIXED)
 # ==========================
 
+sent_videos = set()
+
 if os.path.exists(DATA_FILE):
-    with open(DATA_FILE, "r") as f:
-        sent_videos = set(json.load(f))
+    # Fix: Check if file has content and is valid JSON
+    if os.path.getsize(DATA_FILE) > 0:
+        with open(DATA_FILE, "r") as f:
+            try:
+                sent_videos = set(json.load(f))
+            except json.JSONDecodeError:
+                print("JSON corrupted, resetting database.")
+                sent_videos = set()
+    else:
+        sent_videos = set()
 else:
     sent_videos = set()
 
@@ -62,11 +72,11 @@ def fetch_videos(channel_id):
         "channelId": channel_id,
         "part": "snippet",
         "order": "date",
-        "maxResults": 1
+        "maxResults": 1,
+        "type": "video"
     }
 
     res = requests.get(url, params=params)
-
     data = res.json()
 
     if "items" not in data:
@@ -82,8 +92,10 @@ def fetch_videos(channel_id):
 def main():
 
     for channel in CHANNEL_IDS:
+        channel_id = channel.strip()
+        if not channel_id: continue
 
-        videos = fetch_videos(channel.strip())
+        videos = fetch_videos(channel_id)
 
         for item in videos:
 
