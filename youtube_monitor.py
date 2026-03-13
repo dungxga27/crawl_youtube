@@ -1,18 +1,15 @@
 import requests
 import json
 import os
+from dotenv import load_dotenv
 
-# ==========================
-# CONFIG
-# ==========================
+load_dotenv()
 
-API_KEY = "AIzaSyBETSjK67SbQrVqB4rgeQ9stH6NUYFR9J0"
+API_KEY = os.getenv("YOUTUBE_API_KEY")
+LARK_WEBHOOK = os.getenv("LARK_WEBHOOK")
 
-CHANNEL_IDS = [
-    "UCfSrgydQps6YOFE8r3lGOpg",
-]
-
-LARK_WEBHOOK = "https://open.larksuite.com/open-apis/bot/v2/hook/d55067f6-7455-43dc-ac49-7e98501cb1ae"
+# lấy list channel từ env
+CHANNEL_IDS = os.getenv("CHANNEL_IDS", "").split(",")
 
 DATA_FILE = "sent_videos.json"
 
@@ -27,10 +24,6 @@ if os.path.exists(DATA_FILE):
 else:
     sent_videos = set()
 
-
-# ==========================
-# SAVE SENT VIDEOS
-# ==========================
 
 def save_sent():
     with open(DATA_FILE, "w") as f:
@@ -74,8 +67,6 @@ def fetch_videos(channel_id):
 
     res = requests.get(url, params=params)
 
-    print(res.text)   # debug API response
-
     data = res.json()
 
     if "items" not in data:
@@ -92,7 +83,7 @@ def main():
 
     for channel in CHANNEL_IDS:
 
-        videos = fetch_videos(channel)
+        videos = fetch_videos(channel.strip())
 
         for item in videos:
 
